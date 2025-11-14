@@ -1,0 +1,12 @@
+Flask
+flask-sqlalchemy
+flask-migrate
+psycopg2-binary
+flask-cors
+python-dotenv
+celery[redis]
+redis
+pandas
+flask-socketio
+eventlet
+gunicorn

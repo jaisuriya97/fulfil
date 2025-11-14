@@ -1,0 +1,66 @@
+services:
+  # 1. The PostgreSQL Database
+  - type: psql
+    name: product-db
+    plan: free
+
+  # 2. The Redis Instance
+  - type: redis
+    name: product-broker
+    plan: free
+
+  # 3. The Flask/SocketIO Web Service (API)
+  - type: web
+    name: product-importer-api
+    plan: free
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheck:
+      path: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-db
+          property: postgresql://fulfil_user:X7RiMaobiC9OMps9kcx0J09TE2K79DoB@dpg-d4birushg0os73evt0rg-a/fulfil 
+      - key: REDIS_URL
+        fromService:
+          name: product-broker
+          property: postgresql://fulfil_user:X7RiMaobiC9OMps9kcx0J09TE2K79DoB@dpg-d4birushg0os73evt0rg-a/fulfil 
+      - key: SECRET_KEY
+        generateValue: true # Render will create a random key
+      - key: PYTHONUNBUFFERED
+        value: 1
+
+  # 4. The Celery Background Worker
+  - type: worker
+    name: product-importer-worker
+    plan: free
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-db
+          property: internalConnectionString
+      - key: REDIS_URL
+        fromService:
+          name: product-broker
+          property: internalConnectionString
+      - key: PYTHONUNBUFFERED
+        value: 1
+    # This is the command to start the worker
+    startCommand: "celery -A celery_app.celery worker --loglevel=info"
+
+  # 5. The React Static Site (UI)
+  - type: static
+    name: product-importer-ui
+    plan: free
+    buildCommand: "npm install && npm run build"
+    publishPath: ./frontend/build
+    # Add a rewrite rule for React Router (good practice)
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
