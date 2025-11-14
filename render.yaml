@@ -22,11 +22,11 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: product-db
-          property: internalConnectionString # <-- THIS IS THE FIX
+          property: postgresql://product_db_sc3n_user:YjAahS7nv24nPZ0bI2GzSnRwdUOnAFZi@dpg-d4bmcp24d50c73cm3800-a/product_db_sc3n
       - key: REDIS_URL
         fromService:
           name: product-broker
-          property: internalConnectionString # <-- THIS IS THE FIX
+          property: postgresql://product_db_sc3n_user:YjAahS7nv24nPZ0bI2GzSnRwdUOnAFZi@dpg-d4bmcp24d50c73cm3800-a/product_db_sc3n
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHONUNBUFFERED
