@@ -98,3 +98,12 @@ This starts the web server and the real-time progress handler.
 cd backend
 source venv/bin/activate
 python3 app.py
+```
+
+## 🏞️ Screen Short
+<img width="1465" height="680" alt="Screenshot 2025-11-15 at 9 47 52 AM" src="https://github.com/user-attachments/assets/0b29ef87-ad6d-43da-92b6-092c8666b086" />
+<img width="1470" height="844" alt="Screenshot 2025-11-15 at 9 47 37 AM" src="https://github.com/user-attachments/assets/70d99185-9766-4c32-93ad-b7aafd122169" />
+<img width="1470" height="841" alt="Screenshot 2025-11-15 at 9 47 16 AM" src="https://github.com/user-attachments/assets/e6b9de7b-88bc-4b3c-b244-1046aaf30536" />
+<img width="1470" height="842" alt="Screenshot 2025-11-15 at 9 46 49 AM" src="https://github.com/user-attachments/assets/fc58ffb4-d0f2-4460-8233-0e6d5dbe6bee" />
+
+
