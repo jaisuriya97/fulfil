@@ -1,0 +1,32 @@
+  # /backend/docker-compose.yml
+version: '3.8'
+
+services:
+  # 1. The Flask API
+  api:
+    build: .  # Builds from the Dockerfile in this folder
+    restart: always
+    ports:
+      - "5000:5000" # Maps your laptop's port 5000 to the container's
+    env_file:
+      - .env        # Tells it to load the .env file
+    environment:
+      - FLASK_APP=app.py
+    depends_on:
+      - redis       # (If you were running Redis locally)
+
+  # 2. The Celery Worker
+  worker:
+    build: .
+    restart: always
+    command: celery -A celery_app.celery worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - api
+      - redis       # (If you were running Redis locally)
+  
+  # 3. The Redis Service (if you wanted to run it here)
+  redis:
+    image: "redis:alpine"
+    restart: always
