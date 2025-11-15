@@ -1,15 +1,9 @@
-# /backend/models.py
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index, text
 
-# Initialize SQLAlchemy
 db = SQLAlchemy()
 
 class Product(db.Model):
-    """
-    Product model
-    """
     __tablename__ = 'product'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -18,13 +12,11 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=True)
     active = db.Column(db.Boolean, default=True, nullable=False)
 
-    # This creates the case-insensitive unique index
     __table_args__ = (
         Index('ix_product_sku_lower', text('lower(sku)'), unique=True),
     )
 
     def to_dict(self):
-        """Serializes the object to a dictionary."""
         return {
             'id': self.id,
             'sku': self.sku,
@@ -35,9 +27,6 @@ class Product(db.Model):
 
 
 class Webhook(db.Model):
-    """
-    Webhook configuration model
-    """
     __tablename__ = 'webhook'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -46,7 +35,6 @@ class Webhook(db.Model):
     enabled = db.Column(db.Boolean, default=True, nullable=False)
 
     def to_dict(self):
-        """Serializes the object to a dictionary."""
         return {
             'id': self.id,
             'url': self.url,

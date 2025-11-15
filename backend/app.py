@@ -1,55 +1,42 @@
-# /backend/app.py
-
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 import os
 import uuid
-from werkzeug.utils import secure_filename  # <-- FIX 1
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, join_room
 
 from config import Config
 from models import db, Product, Webhook
 from celery_app import celery
 
-# --- App Initialization ---
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# --- Create upload folder ---
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# --- Extensions Initialization ---
 db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
-# --- Initialize SocketIO ---
 socketio = SocketIO(app, message_queue=app.config['REDIS_URL'], cors_allowed_origins="*")
 
-# --- Link Flask config to Celery ---
 celery.conf.update(app.config)
 
-# --- Helper Functions ---
 def parse_bool(value):
-    """Helper to parse boolean strings from query args."""
     return str(value).lower() in ['true', '1', 't', 'yes']
 
-# --- SocketIO Event Handler ---
 @socketio.on('join_room')
 def on_join(data):
     job_id = data['job_id']
     join_room(job_id)
     print(f"--- Client joined room: {job_id} ---")
 
-# --- API Routes ---
-
 @app.route('/api/health')
 def health_check():
     return jsonify({"status": "healthy"}), 200
 
-# === STORY 1: File Upload ===
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -66,12 +53,9 @@ def upload_file():
         
         job_id = str(uuid.uuid4())
         
-        # --- FIX 2: Call task by name ---
         celery.send_task('tasks.process_csv_import', args=[filepath, job_id])
         
         return jsonify({'job_id': job_id}), 202
-
-# === STORY 2: Product Management UI ===
 
 @app.route('/api/products', methods=['POST'])
 def create_product():
@@ -150,16 +134,13 @@ def delete_product(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-# === STORY 3: Bulk Delete ===
 @app.route('/api/products/delete-all', methods=['DELETE'])
 def delete_all_products():
     job_id = str(uuid.uuid4())
-    # --- FIX 3: Call task by name ---
     celery.send_task('tasks.bulk_delete_all_products', args=[job_id])
     return jsonify({'message': 'Bulk delete task started.', 'job_id': job_id}), 202
 
 
-# === STORY 4: Webhook Configuration ===
 @app.route('/api/webhooks', methods=['POST'])
 def create_webhook():
     data = request.json
@@ -205,8 +186,6 @@ def test_webhook(id):
         'dummy_response': { 'status': 200, 'body': 'OK' }
     }), 200
 
-# --- Main entry point ---
 if __name__ == '__main__':
-    # --- FIX 4: Run with socketio ---
     print("--- Starting SocketIO server with eventlet ---")
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)

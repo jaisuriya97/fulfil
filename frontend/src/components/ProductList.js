@@ -1,8 +1,7 @@
-// src/components/ProductList.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_URL from "../apiConfig";
-import { socket, joinRoom } from "../socket"; // For bulk delete progress
+import { socket, joinRoom } from "../socket";
 
 function ProductList() {
   const [products, setProducts] = useState([]);
@@ -12,7 +11,6 @@ function ProductList() {
   const [deleteStatus, setDeleteStatus] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
-  // Fetch products
   const fetchProducts = async () => {
     try {
       const params = {
@@ -29,17 +27,15 @@ function ProductList() {
     }
   };
 
-  // Fetch products on filter or page change
   useEffect(() => {
     fetchProducts();
   }, [filters, page]);
 
-  // Set up socket listeners for bulk delete
   useEffect(() => {
     socket.on("task_complete", (data) => {
       setDeleteStatus(data.status);
       setDeleteError("");
-      fetchProducts(); // Refresh list after delete
+      fetchProducts();
     });
     socket.on("task_failed", (data) => {
       setDeleteError(data.error);
@@ -54,14 +50,14 @@ function ProductList() {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(1); // Reset to first page on filter change
+    setPage(1);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await axios.delete(`${API_URL}/api/products/${id}`);
-        fetchProducts(); // Refresh list
+        fetchProducts();
       } catch (err) {
         console.error("Error deleting product:", err);
       }
@@ -74,7 +70,7 @@ function ProductList() {
         setDeleteStatus("Deletion in progress...");
         setDeleteError("");
         const res = await axios.delete(`${API_URL}/api/products/delete-all`);
-        joinRoom(res.data.job_id); // Join room to listen for completion
+        joinRoom(res.data.job_id);
       } catch (err) {
         setDeleteError("Failed to start bulk delete.");
         setDeleteStatus("");
@@ -86,7 +82,6 @@ function ProductList() {
     <div className="card">
       <h3>Story 2 & 3: Product Management</h3>
 
-      {/* Bulk Delete */}
       <div className="bulk-delete">
         <button onClick={handleBulkDelete} className="danger-button">
           Delete All Products
@@ -95,7 +90,6 @@ function ProductList() {
         {deleteError && <p className="error">{deleteError}</p>}
       </div>
 
-      {/* Filters */}
       <div className="filters">
         <input
           name="sku"
@@ -120,7 +114,6 @@ function ProductList() {
         </select>
       </div>
 
-      {/* Product Table */}
       <table>
         <thead>
           <tr>
@@ -153,7 +146,6 @@ function ProductList() {
         </tbody>
       </table>
 
-      {/* Pagination */}
       <div className="pagination">
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}

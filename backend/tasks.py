@@ -9,11 +9,8 @@ from celery.signals import task_prerun
 
 socketio_client = SocketIO(message_queue=redis_url)
 
-# This signal handler ensures that every Celery task gets a fresh
-# database connection, preventing deadlocks from forked processes.
 @task_prerun.connect
 def on_task_prerun(*args, **kwargs):
-    """Dispose of the engine connection pool before each task."""
     with app.app_context():
         db.engine.dispose()
 
@@ -53,7 +50,6 @@ def process_csv_import(self, filepath, job_id):
             rows_processed = 0
             chunksize = 100
             
-            # --- NEW: Commit counter ---
             chunk_counter = 0
 
             print(f"--- [Job {job_id}]: Starting pandas read_csv loop with chunksize={chunksize} ---")
@@ -85,7 +81,6 @@ def process_csv_import(self, filepath, job_id):
                 
                 db.session.execute(text(insert_stmt), records)
                 
-                # --- NEW: Commit every 10 chunks (1000 rows) ---
                 if chunk_counter % 10 == 0:
                     print(f"--- [Job {job_id}]: Committing batch of 1000 rows... ---")
                     db.session.commit()
@@ -98,7 +93,6 @@ def process_csv_import(self, filepath, job_id):
                                      {'status': 'Importing...', 'progress': round(progress)},
                                      room=job_id)
 
-            # --- NEW: Commit any remaining chunks ---
             print(f"--- [Job {job_id}]: Committing final batch... ---")
             db.session.commit()
             print(f"--- [Job {job_id}]: Final commit complete. ---")

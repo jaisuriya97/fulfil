@@ -1,4 +1,3 @@
-// src/components/FileUpload.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_URL from "../apiConfig";
@@ -12,34 +11,30 @@ function FileUpload() {
   const [jobId, setJobId] = useState(null);
 
   useEffect(() => {
-    // Listen for progress updates
     socket.on("progress_update", (data) => {
       setProgress(data.progress);
       setStatus(data.status);
       setError("");
     });
 
-    // Listen for task completion
     socket.on("task_complete", (data) => {
       setStatus(data.status);
       setProgress(100);
-      setJobId(null); // Reset for next upload
+      setJobId(null);
     });
 
-    // Listen for task failure
     socket.on("task_failed", (data) => {
       setError(`Error: ${data.error}`);
       setStatus("Upload Failed");
-      setJobId(null); // Reset
+      setJobId(null);
     });
 
-    // Clean up listeners on component unmount
     return () => {
       socket.off("progress_update");
       socket.off("task_complete");
       socket.off("task_failed");
     };
-  }, []); // Only run once on mount
+  }, []);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -68,7 +63,7 @@ function FileUpload() {
 
       const newJobId = res.data.job_id;
       setJobId(newJobId);
-      joinRoom(newJobId); // Join the socket room for this job
+      joinRoom(newJobId);
       setStatus("Processing... (0%)");
     } catch (err) {
       setError("File upload failed.");
